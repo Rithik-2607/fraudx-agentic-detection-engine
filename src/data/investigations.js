@@ -1,0 +1,173 @@
+/** Centralized mock investigation data */
+
+export const investigations = [
+  {
+    id: 'INV-1024',
+    targetAccount: 'U1042',
+    fraudRing: 'RING-018',
+    assignedAgent: 'Ring Investigator',
+    riskScore: 91,
+    status: 'Active',
+    createdAt: '2026-08-24T10:02:00',
+    updatedAt: '2026-08-24T14:30:00',
+    priority: 'Critical',
+    summary: 'The system identified a coordinated transaction pattern involving 6 accounts. Funds moved rapidly through multiple intermediary accounts before reaching the final destination. Two accounts share a device fingerprint, increasing the probability of coordinated activity.',
+    confidence: 94,
+    timeline: [
+      { step: 'Transaction Detected', time: '10:02', status: 'completed', description: 'Abnormal transfer of ₹84,500 from U1042 to U1088 flagged by Transaction Agent.' },
+      { step: 'Anomaly Identified', time: '10:05', status: 'completed', description: 'Rapid sequential transfers and shared device fingerprint identified.' },
+      { step: 'Network Analysis', time: '10:12', status: 'completed', description: 'Ring Investigator discovered 6 connected accounts with circular fund flow.' },
+      { step: 'Related Accounts Found', time: '10:18', status: 'completed', description: 'Accounts U1088, U1091, U1102, U1132, U1150 linked to U1042.' },
+      { step: 'Risk Assessment', time: '10:24', status: 'completed', description: 'Risk score calculated at 91/100 — Critical level.' },
+      { step: 'Countermeasure Recommendation', time: '10:26', status: 'in-progress', description: 'Recommending transaction restriction for all involved accounts.' },
+    ],
+    evidence: {
+      transaction: [
+        { id: 'EVD-001', description: 'Unusual transaction amount ₹84,500 — 340% above account average', severity: 'High', confidence: 92 },
+        { id: 'EVD-002', description: 'Rapid transaction sequence — 6 transfers in 14 minutes', severity: 'Critical', confidence: 96 },
+      ],
+      network: [
+        { id: 'EVD-003', description: 'Connected to 5 suspicious accounts forming circular pattern', severity: 'Critical', confidence: 94 },
+        { id: 'EVD-004', description: 'Circular transaction pattern — funds return to U1042 via 4 intermediaries', severity: 'Critical', confidence: 97 },
+      ],
+      behavioral: [
+        { id: 'EVD-005', description: 'Unusual transaction timing — all transfers between 14:18 and 14:32', severity: 'High', confidence: 88 },
+        { id: 'EVD-006', description: 'Shared device fingerprint DEV-882 across U1042 and U1088', severity: 'High', confidence: 91 },
+      ],
+    },
+    flagReasons: [
+      { reason: 'Circular fund flow pattern detected', detail: 'Funds transferred through 6 accounts and returned to the origin account within 14 minutes.' },
+      { reason: 'Shared device fingerprint', detail: 'Two accounts in the ring accessed from the same device (DEV-882).' },
+      { reason: 'Anomalous transaction velocity', detail: '6 high-value transfers executed in rapid succession, inconsistent with normal account behavior.' },
+      { reason: 'Amount escalation pattern', detail: 'The return transfer (₹92,000) exceeded the initial transfer (₹84,500), suggesting fund accumulation.' },
+    ],
+  },
+  {
+    id: 'INV-1025',
+    targetAccount: 'U1001',
+    fraudRing: 'RING-019',
+    assignedAgent: 'Transaction Agent',
+    riskScore: 88,
+    status: 'Evidence Gathering',
+    createdAt: '2026-08-24T11:32:00',
+    updatedAt: '2026-08-24T13:45:00',
+    priority: 'Critical',
+    summary: 'Layered fund movement detected through 6 intermediary accounts. Funds are being split and recombined to obscure the origin, characteristic of money laundering operations.',
+    confidence: 89,
+    timeline: [
+      { step: 'Transaction Detected', time: '11:32', status: 'completed', description: 'Large transfer of ₹150,000 from U1001 flagged.' },
+      { step: 'Anomaly Identified', time: '11:35', status: 'completed', description: 'Layering pattern — funds splitting and recombining.' },
+      { step: 'Network Analysis', time: '11:42', status: 'completed', description: 'Full chain from U1001 through 5 intermediaries discovered.' },
+      { step: 'Related Accounts Found', time: '11:50', status: 'completed', description: '6 accounts linked in layering network.' },
+      { step: 'Risk Assessment', time: '11:55', status: 'in-progress', description: 'Risk assessment in progress.' },
+      { step: 'Countermeasure Recommendation', time: null, status: 'pending', description: 'Awaiting risk assessment completion.' },
+    ],
+    evidence: {
+      transaction: [
+        { id: 'EVD-011', description: 'Large initial transfer of ₹150,000 — first transaction of this magnitude', severity: 'High', confidence: 87 },
+        { id: 'EVD-012', description: 'Sequential decreasing amounts through chain — typical layering pattern', severity: 'Critical', confidence: 93 },
+      ],
+      network: [
+        { id: 'EVD-013', description: 'Linear chain of 6 accounts with loop-back to U1002', severity: 'Critical', confidence: 91 },
+      ],
+      behavioral: [
+        { id: 'EVD-014', description: 'All accounts created within the same 30-day period', severity: 'Medium', confidence: 78 },
+      ],
+    },
+    flagReasons: [
+      { reason: 'Layering pattern detected', detail: 'Sequential decreasing transfers through multiple intermediary accounts.' },
+      { reason: 'New account cluster', detail: 'All involved accounts were created in a recent 30-day window.' },
+    ],
+  },
+  {
+    id: 'INV-1019',
+    targetAccount: 'U7001',
+    fraudRing: 'RING-022',
+    assignedAgent: 'Risk Agent',
+    riskScore: 58,
+    status: 'Completed',
+    createdAt: '2026-08-23T09:32:00',
+    updatedAt: '2026-08-23T15:00:00',
+    priority: 'Medium',
+    summary: 'Shared device cluster investigation completed. Four accounts operating from the same device with moderate-risk transfer patterns. Accounts placed under enhanced monitoring.',
+    confidence: 72,
+    timeline: [
+      { step: 'Transaction Detected', time: '09:32', status: 'completed', description: 'Shared device fingerprint flagged.' },
+      { step: 'Anomaly Identified', time: '09:38', status: 'completed', description: 'Four accounts on the same device.' },
+      { step: 'Network Analysis', time: '09:45', status: 'completed', description: 'Circular pattern among 4 accounts.' },
+      { step: 'Related Accounts Found', time: '10:00', status: 'completed', description: 'All 4 accounts linked.' },
+      { step: 'Risk Assessment', time: '10:15', status: 'completed', description: 'Risk score: 58/100 — Medium.' },
+      { step: 'Countermeasure Recommendation', time: '10:20', status: 'completed', description: 'Enhanced monitoring applied.' },
+    ],
+    evidence: {
+      transaction: [
+        { id: 'EVD-021', description: 'Moderate-value circular transfers totaling ₹520,000', severity: 'Medium', confidence: 70 },
+      ],
+      network: [
+        { id: 'EVD-022', description: 'Four accounts sharing device fingerprint DEV-440', severity: 'Medium', confidence: 75 },
+      ],
+      behavioral: [
+        { id: 'EVD-023', description: 'Consistent transfer timing — all transactions between 9:00-10:00 AM', severity: 'Low', confidence: 65 },
+      ],
+    },
+    flagReasons: [
+      { reason: 'Shared device access', detail: 'All accounts accessed from device DEV-440.' },
+    ],
+  },
+  {
+    id: 'INV-1026',
+    targetAccount: 'U4001',
+    fraudRing: 'RING-020',
+    assignedAgent: 'Countermeasure Agent',
+    riskScore: 65,
+    status: 'Countermeasure Pending',
+    createdAt: '2026-08-24T12:18:00',
+    updatedAt: '2026-08-24T14:00:00',
+    priority: 'High',
+    summary: 'Rapid transfer chain involving 3 accounts with high-value sequential transfers. Countermeasure recommendation pending approval.',
+    confidence: 81,
+    timeline: [
+      { step: 'Transaction Detected', time: '12:18', status: 'completed', description: 'Sequential high-value transfers flagged.' },
+      { step: 'Anomaly Identified', time: '12:22', status: 'completed', description: 'Rapid transfer chain identified.' },
+      { step: 'Network Analysis', time: '12:28', status: 'completed', description: '3-account chain confirmed.' },
+      { step: 'Related Accounts Found', time: '12:32', status: 'completed', description: 'U4012 and U4028 linked.' },
+      { step: 'Risk Assessment', time: '12:40', status: 'completed', description: 'Risk score: 65/100 — High.' },
+      { step: 'Countermeasure Recommendation', time: '12:45', status: 'in-progress', description: 'Request verification recommended.' },
+    ],
+    evidence: {
+      transaction: [{ id: 'EVD-031', description: 'Near-identical amounts transferred in sequence within 10 minutes', severity: 'High', confidence: 84 }],
+      network: [{ id: 'EVD-032', description: '3-account pass-through chain with same device', severity: 'High', confidence: 80 }],
+      behavioral: [{ id: 'EVD-033', description: 'First high-value transfer from account U4001', severity: 'Medium', confidence: 72 }],
+    },
+    flagReasons: [{ reason: 'Rapid sequential transfers', detail: 'High-value transfers completed within 10-minute window.' }],
+  },
+  {
+    id: 'INV-1027',
+    targetAccount: 'U6005',
+    fraudRing: 'RING-021',
+    assignedAgent: 'Forensic Report Agent',
+    riskScore: 72,
+    status: 'Running',
+    createdAt: '2026-08-23T16:48:00',
+    updatedAt: '2026-08-24T08:00:00',
+    priority: 'High',
+    summary: 'Funnel network investigation — multiple source accounts channeling funds into a single collector account.',
+    confidence: 78,
+    timeline: [
+      { step: 'Transaction Detected', time: '16:48', status: 'completed', description: 'High-value inflow to U6005 flagged.' },
+      { step: 'Anomaly Identified', time: '16:55', status: 'completed', description: 'Multiple sources to single collector.' },
+      { step: 'Network Analysis', time: '17:00', status: 'completed', description: 'Funnel pattern confirmed.' },
+      { step: 'Related Accounts Found', time: '17:10', status: 'completed', description: 'U6001-U6004 identified as sources.' },
+      { step: 'Risk Assessment', time: '17:20', status: 'in-progress', description: 'Risk assessment in progress.' },
+      { step: 'Countermeasure Recommendation', time: null, status: 'pending', description: 'Pending.' },
+    ],
+    evidence: {
+      transaction: [{ id: 'EVD-041', description: 'Multiple high-value transfers converging on U6005', severity: 'High', confidence: 82 }],
+      network: [{ id: 'EVD-042', description: 'Funnel topology — 4 accounts sending to 1', severity: 'High', confidence: 85 }],
+      behavioral: [{ id: 'EVD-043', description: 'Collector account has no outbound transactions', severity: 'Medium', confidence: 70 }],
+    },
+    flagReasons: [{ reason: 'Funnel convergence', detail: 'Multiple accounts channeling funds to a single collector.' }],
+  },
+];
+
+export default investigations;
