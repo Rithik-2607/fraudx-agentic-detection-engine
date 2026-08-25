@@ -27,7 +27,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("app.main")
 
-# Auto-create tables on startup
+# Keep local development convenient; Supabase schema is created by the SQL migration.
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -68,7 +68,7 @@ def startup_event():
     from app.models.account import Account
     try:
         # Check if table is empty
-        if not db.query(Account).first():
+        if settings.SEED_DATABASE and not db.query(Account).first():
             logger.info("Database is empty. Auto seeding data...")
             seed_db()
     except Exception as e:

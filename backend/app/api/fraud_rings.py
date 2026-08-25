@@ -4,6 +4,7 @@ from app.core.database import get_db
 from app.models.fraud_ring import FraudRing
 from app.models.transaction import Transaction
 from app.models.account import Account
+from app.models.fraud_ring_member import FraudRingMember
 from app.graph.fraud_graph import build_transaction_graph, get_ring_visualization_data
 
 router = APIRouter(prefix="/api/fraud-rings", tags=["Fraud Rings"])
@@ -135,7 +136,8 @@ def get_ring_accounts(ring_id: str, db: Session = Depends(get_db)):
     ring = db.query(FraudRing).filter_by(ring_id=ring_id).first()
     if not ring:
         raise HTTPException(status_code=404, detail="Fraud Ring not found")
-    acc_ids = RING_ACCOUNTS_MAP.get(ring_id, [])
+    member_ids = db.query(FraudRingMember.account_id).filter_by(ring_id=ring_id).all()
+    acc_ids = [account_id for (account_id,) in member_ids] or RING_ACCOUNTS_MAP.get(ring_id, [])
     return db.query(Account).filter(Account.account_id.in_(acc_ids)).all()
 
 
@@ -144,7 +146,8 @@ def get_ring_transactions(ring_id: str, db: Session = Depends(get_db)):
     ring = db.query(FraudRing).filter_by(ring_id=ring_id).first()
     if not ring:
         raise HTTPException(status_code=404, detail="Fraud Ring not found")
-    acc_ids = RING_ACCOUNTS_MAP.get(ring_id, [])
+    member_ids = db.query(FraudRingMember.account_id).filter_by(ring_id=ring_id).all()
+    acc_ids = [account_id for (account_id,) in member_ids] or RING_ACCOUNTS_MAP.get(ring_id, [])
     return db.query(Transaction).filter(
         (Transaction.sender_account_id.in_(acc_ids)) &
         (Transaction.receiver_account_id.in_(acc_ids))
@@ -157,7 +160,8 @@ def get_ring_network(ring_id: str, db: Session = Depends(get_db)):
     ring = db.query(FraudRing).filter_by(ring_id=ring_id).first()
     if not ring:
         raise HTTPException(status_code=404, detail="Fraud Ring not found")
-    acc_ids = RING_ACCOUNTS_MAP.get(ring_id, [])
+    member_ids = db.query(FraudRingMember.account_id).filter_by(ring_id=ring_id).all()
+    acc_ids = [account_id for (account_id,) in member_ids] or RING_ACCOUNTS_MAP.get(ring_id, [])
     G = build_transaction_graph(db)
     return get_ring_visualization_data(G, acc_ids)
 

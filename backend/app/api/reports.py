@@ -32,7 +32,7 @@ def get_report(report_id: str, db: Session = Depends(get_db)):
     # Content is stored as a JSON string in report model
     content_data = {}
     try:
-        content_data = json.loads(rpt.content)
+        content_data = rpt.content if isinstance(rpt.content, dict) else json.loads(rpt.content)
     except Exception:
         content_data = {
             "executiveSummary": rpt.summary,

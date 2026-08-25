@@ -89,7 +89,7 @@ class ForensicReportAgent:
             summary=summary,
             risk_score=risk_score,
             confidence=94.0 if risk_score >= 80 else 78.0,
-            content=json.dumps(content)
+            content=content
         )
         db.add(new_report)
 

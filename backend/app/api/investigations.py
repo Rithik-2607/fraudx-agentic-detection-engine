@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.investigation import Investigation
 from app.models.countermeasure import Countermeasure
+from app.models.investigation_evidence import InvestigationEvidence
+from app.models.investigation_event import InvestigationEvent
 from app.agents.orchestrator import run_investigation
 from typing import Optional
 
@@ -98,4 +100,5 @@ def get_investigation_evidence(investigation_id: str, db: Session = Depends(get_
     inv = db.query(Investigation).filter_by(investigation_id=investigation_id).first()
     if not inv:
         raise HTTPException(status_code=404, detail="Investigation not found")
-    return {"investigation_id": investigation_id, "evidence_captured": 6}
+    evidence_count = db.query(InvestigationEvidence).filter_by(investigation_id=investigation_id).count()
+    return {"investigation_id": investigation_id, "evidence_captured": evidence_count}

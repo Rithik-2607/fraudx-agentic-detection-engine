@@ -11,6 +11,7 @@ from app.websocket.manager import manager
 import datetime
 import uuid
 import logging
+from app.models.simulation_run import SimulationRun
 
 logger = logging.getLogger("app.orchestrator")
 
@@ -27,6 +28,17 @@ async def run_investigation(db: Session, account_id: str) -> dict:
     existing_inv = db.query(Investigation).filter_by(target_account_id=account_id).first()
     if existing_inv:
         investigation_id = existing_inv.investigation_id
+
+    run_record = SimulationRun(
+        run_id=f"SIM-{str(uuid.uuid4())[:8].upper()}",
+        target_account_id=account_id,
+        investigation_id=investigation_id,
+        status="RUNNING",
+    )
+    db.add(run_record)
+    db.commit()
+
+    from app.models.agent_activity import AgentActivity
 
     # Instantiate Agents
     tx_agent = TransactionAgent()
@@ -45,6 +57,24 @@ async def run_investigation(db: Session, account_id: str) -> dict:
             "status": status,
             "icon": "Activity" if "Transaction" in agent else "Network" if "Ring" in agent else "AlertTriangle" if "Risk" in agent else "Shield" if "Countermeasure" in agent else "FileText"
         }
+        agent_ids = {
+            tx_agent.name: tx_agent.agent_id,
+            ring_agent.name: ring_agent.agent_id,
+            risk_agent.name: risk_agent.agent_id,
+            cm_agent.name: cm_agent.agent_id,
+            forensic_agent.name: forensic_agent.agent_id,
+        }
+        persisted_investigation_id = investigation_id if db.query(Investigation).filter_by(investigation_id=investigation_id).first() else None
+        db.add(AgentActivity(
+            agent_id=agent_ids.get(agent),
+            investigation_id=persisted_investigation_id,
+            agent_name=agent,
+            action=action,
+            target=target,
+            status=status,
+            icon=event["icon"],
+        ))
+        db.commit()
         await manager.broadcast(event)
         await asyncio.sleep(1.0) # Yield control and simulate latency delay
 
@@ -144,6 +174,11 @@ async def run_investigation(db: Session, account_id: str) -> dict:
         "target_account_id": account_id,
         "risk_score": investigation.risk_score
     })
+
+    run_record.status = "COMPLETED"
+    run_record.risk_score = investigation.risk_score
+    run_record.completed_at = datetime.datetime.utcnow()
+    db.commit()
 
     return {
         "investigation_id": investigation_id,

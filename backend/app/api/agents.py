@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.agent import Agent
+from app.models.agent_activity import AgentActivity
 
 router = APIRouter(prefix="/api/agents", tags=["Agents"])
 
@@ -35,7 +36,13 @@ def get_agents(db: Session = Depends(get_db)):
     return result
 
 @router.get("/activity")
-def get_agent_activities():
+def get_agent_activities(db: Session = Depends(get_db)):
+    activities = db.query(AgentActivity).order_by(AgentActivity.created_at.desc()).limit(100).all()
+    if activities:
+        return [
+            {"time": activity.created_at.strftime("%H:%M:%S"), "agent": activity.agent_name, "action": activity.action, "target": activity.target, "status": activity.status, "icon": activity.icon}
+            for activity in activities
+        ]
     return [
         {"time": "14:32:12", "agent": "Forensic Report Agent", "action": "Investigation report generated", "target": "INV-1024", "status": "Completed", "icon": "FileText"},
         {"time": "14:32:11", "agent": "Countermeasure Agent", "action": "Recommended transaction restriction", "target": "U1042", "status": "Processing", "icon": "Shield"},

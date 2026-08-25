@@ -8,6 +8,13 @@ from app.models.investigation import Investigation
 from app.models.countermeasure import Countermeasure
 from app.models.report import Report
 from app.models.notification import Notification
+from app.models.fraud_ring_member import FraudRingMember
+from app.models.fraud_ring_edge import FraudRingEdge
+from app.models.investigation_evidence import InvestigationEvidence
+from app.models.investigation_event import InvestigationEvent
+from app.models.agent_activity import AgentActivity
+from app.models.simulation_run import SimulationRun
+from app.core.config import settings
 
 import random
 import datetime
@@ -17,16 +24,27 @@ Base.metadata.create_all(bind=engine)
 
 def seed_db():
     db = SessionLocal()
+
+    if db.query(Account).first() and not settings.SEED_DATABASE:
+        print("Database already contains data. Set SEED_DATABASE=true to reseed.")
+        db.close()
+        return
     
     # 1. Clear database first to allow clean re-run seeding
-    db.query(Account).delete()
-    db.query(Transaction).delete()
-    db.query(FraudRing).delete()
-    db.query(Agent).delete()
-    db.query(Investigation).delete()
+    db.query(AgentActivity).delete()
+    db.query(InvestigationEvent).delete()
+    db.query(InvestigationEvidence).delete()
+    db.query(FraudRingEdge).delete()
+    db.query(FraudRingMember).delete()
+    db.query(SimulationRun).delete()
     db.query(Countermeasure).delete()
     db.query(Report).delete()
     db.query(Notification).delete()
+    db.query(Transaction).delete()
+    db.query(Investigation).delete()
+    db.query(FraudRing).delete()
+    db.query(Agent).delete()
+    db.query(Account).delete()
     db.commit()
 
     locations = ["Chennai", "Bengaluru", "Mumbai", "Hyderabad", "Delhi", "Coimbatore", "Trichy"]
@@ -267,6 +285,64 @@ def seed_db():
         Notification(notification_id="NOTIF-003", title="Countermeasure requires approval", message="Restrict transactions for U1042", severity="WARNING", read=False)
     ]
     db.add_all(notifs)
+    db.commit()
+
+    # Persist graph membership, edge summaries, investigation evidence/timeline,
+    # and historical agent activity used by the dashboard.
+    ring_members = {
+        "RING-018": [("U1042", "MASTER"), ("U1088", "INTERMEDIARY"), ("U1091", "MULE"), ("U1102", "MULE"), ("U1132", "INTERMEDIARY"), ("U1150", "BENEFICIARY")],
+        "RING-019": [("U1001", "MASTER"), ("U1002", "INTERMEDIARY"), ("U1003", "MULE"), ("U1004", "MULE"), ("U1005", "INTERMEDIARY"), ("U1006", "BENEFICIARY")],
+        "RING-020": [("U4001", "MASTER"), ("U4012", "INTERMEDIARY"), ("U4028", "BENEFICIARY")],
+    }
+    for ring_id, members in ring_members.items():
+        for account_id, role in members:
+            account = db.query(Account).filter_by(account_id=account_id).first()
+            db.add(FraudRingMember(ring_id=ring_id, account_id=account_id, role=role, risk_score=account.risk_score if account else 0))
+
+    ring_edges = [
+        ("RING-018", "U1042", "U1088", 4, 84500), ("RING-018", "U1088", "U1091", 3, 72000),
+        ("RING-018", "U1091", "U1102", 3, 65000), ("RING-018", "U1102", "U1132", 2, 58000),
+        ("RING-018", "U1132", "U1150", 2, 45000), ("RING-018", "U1150", "U1042", 3, 92000),
+        ("RING-019", "U1001", "U1002", 5, 150000), ("RING-019", "U1002", "U1003", 4, 142000),
+        ("RING-019", "U1003", "U1004", 3, 138000), ("RING-019", "U1004", "U1005", 3, 130000),
+        ("RING-019", "U1005", "U1006", 2, 125000), ("RING-019", "U1006", "U1002", 2, 118000),
+        ("RING-020", "U4001", "U4012", 3, 250000), ("RING-020", "U4012", "U4028", 3, 245000),
+    ]
+    db.add_all([FraudRingEdge(ring_id=r, source_account_id=s, target_account_id=t, transaction_count=c, total_amount=a) for r, s, t, c, a in ring_edges])
+
+    evidence_rows = [
+        ("INV-1024", "transaction", "Unusual transfer velocity deviating from account average.", "HIGH", 92),
+        ("INV-1024", "network", "Circular transaction flow detected across RING-018.", "CRITICAL", 97),
+        ("INV-1024", "behavioral", "Shared device fingerprints link multiple accounts.", "HIGH", 91),
+        ("INV-1025", "transaction", "Large initial transfer followed by decreasing amounts.", "HIGH", 87),
+        ("INV-1025", "network", "Layering chain includes a loop-back transfer.", "CRITICAL", 91),
+        ("INV-1025", "behavioral", "Accounts show coordinated timing patterns.", "MEDIUM", 78),
+    ]
+    db.add_all([InvestigationEvidence(evidence_id=f"EVD-SEED-{index:03d}", investigation_id=inv, category=cat, description=desc, severity=sev, confidence=confidence) for index, (inv, cat, desc, sev, confidence) in enumerate(evidence_rows, 1)])
+
+    for inv, event_type, description, status in [
+        ("INV-1024", "TRANSACTION_DETECTED", "Abnormal transfer velocity flagged.", "completed"),
+        ("INV-1024", "NETWORK_ANALYSIS", "Circular flow ring mapped.", "completed"),
+        ("INV-1024", "RISK_ASSESSMENT", "Composite risk scored at 91/100.", "completed"),
+        ("INV-1024", "COUNTERMEASURE", "Restriction recommendation created.", "in-progress"),
+        ("INV-1025", "TRANSACTION_DETECTED", "Layering origin transfer flagged.", "completed"),
+        ("INV-1025", "NETWORK_ANALYSIS", "Six-account chain discovered.", "completed"),
+        ("INV-1025", "RISK_ASSESSMENT", "Composite risk scored at 88/100.", "in-progress"),
+    ]:
+        db.add(InvestigationEvent(investigation_id=inv, event_type=event_type, description=description, status=status))
+
+    activity_templates = [
+        ("AGENT-001", "Transaction Detection Agent", "Detected abnormal transfer pattern", "U1042", "Completed", "Activity"),
+        ("AGENT-002", "Ring Investigator Agent", "Discovered connected accounts", "RING-018", "Completed", "Network"),
+        ("AGENT-003", "Risk Assessment Agent", "Calculated composite risk score", "U1042", "Completed", "AlertTriangle"),
+        ("AGENT-004", "Countermeasure Agent", "Recommended transaction restriction", "U1042", "Processing", "Shield"),
+        ("AGENT-005", "Forensic Report Agent", "Investigation report generated", "INV-1024", "Completed", "FileText"),
+    ]
+    for index in range(4):
+        for agent_id, agent_name, action, target, status, icon in activity_templates:
+            db.add(AgentActivity(agent_id=agent_id, investigation_id="INV-1024", agent_name=agent_name, action=action, target=target, status=status, icon=icon))
+
+    db.add(SimulationRun(run_id="SIM-SEED-001", target_account_id="U1042", investigation_id="INV-1024", status="COMPLETED", risk_score=91.0, completed_at=datetime.datetime.utcnow()))
     db.commit()
 
     print("Database seeding completed successfully.")

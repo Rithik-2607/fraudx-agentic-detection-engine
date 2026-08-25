@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, JSON
 from app.core.database import Base
 
 class Report(Base):
@@ -13,5 +13,5 @@ class Report(Base):
     summary = Column(Text, nullable=True)
     risk_score = Column(Float, default=0.0)
     confidence = Column(Float, default=0.0)
-    content = Column(Text, nullable=True)  # JSON-encoded contents matching detail items
+    content = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
